@@ -1,0 +1,32 @@
+{
+  "name": "denis/php-test",
+  "keywords": [
+    "php",
+    "rabbit",
+    "maria-db"
+  ],
+  "autoload": {
+    "psr-4": {
+      "Src\\": "src/"
+    }
+  },
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "denis"
+    }
+  ],
+  "type": "project",
+  "require": {
+    "php": ">=7.4",
+    "vlucas/phpdotenv": "^5.1",
+    "php-amqplib/php-amqplib": "^3.0",
+    "fakerphp/faker": "^1.20",
+    "guzzlehttp/guzzle": "^7.0"
+  },
+  "require-dev": {
+    "roave/security-advisories": "dev-master"
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
+}
