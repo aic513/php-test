@@ -1,6 +1,10 @@
 /.idea
 db_data
-logs
+logs-nginx
 /app/vendor/
 /app/.env
 /.env
+/app/logs-app/
+logs-supervisor
+/app/supervisord.log
+/app/supervisord.pid
