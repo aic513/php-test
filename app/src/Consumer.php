@@ -14,45 +14,61 @@ use Throwable;
 
 class Consumer
 {
+    const QUEUE_NAME = 'url-queue';
+    const NO_LOCAL = false;
+    const NO_ACK = true;
+    const EXCLUSIVE = false;
+    const NOWAIT = false;
+    const CONSUMER_TAG = '';
+    const SLEEP_TIME = 30;
+    const STATUS_SUCCESS = 200;
+
     private AMQPChannel $channel;
     private AMQPStreamConnection $connection;
     private Client $httpClient;
     private UrlService $service;
-
     private ProducerDelayed $producerDelayed;
 
     public function __construct(AMQPStreamConnection $connection, UrlService $service, ProducerDelayed $producerDelayed)
     {
         $this->connection = $connection;
         $this->channel = $this->connection->channel();
-        $this->channel->queue_declare('url-queue');
+        $this->channel->queue_declare(self::QUEUE_NAME);
         $this->httpClient = new Client();
         $this->service = $service;
         $this->producerDelayed = $producerDelayed;
     }
 
-
+    /**
+     * @throws Exception
+     */
     public function listen()
     {
         $callback = $this->getCallback();
         $this->channel->basic_consume(
-            'url-queue',
-            '',
-            false,
-            true,
-            false,
-            false,
+            self::QUEUE_NAME,
+            self::CONSUMER_TAG,
+            self::NO_LOCAL,
+            self::NO_ACK,
+            self::EXCLUSIVE,
+            self::NOWAIT,
             $callback
         );
         $this->listenQueue();
     }
 
+    /**
+     * @throws Exception
+     */
     private function closeConnection()
     {
         $this->channel->close();
         $this->connection->close();
     }
 
+    /**
+     * @throws Exception
+     */
     private function listenQueue()
     {
         while ($this->channel->is_open()) {
@@ -66,7 +82,7 @@ class Consumer
         return function ($msg) {
             echo ' [x] Consumer is listening message - ' . $msg->body . ' from rabbitmq' . PHP_EOL;
             $this->handleMessage($msg->body);
-            sleep(30);
+            sleep(self::SLEEP_TIME);
             echo ' [x] We sleep for 30 seconds' . PHP_EOL;
             echo ' [x] Done' . PHP_EOL;
         };
@@ -107,7 +123,7 @@ class Consumer
             $this->service->updateUrl($preparedUrl, $body ?? null, $statusCode, $curlStatus, $headers);
         } else {
             echo $statusCode . PHP_EOL;
-            if ($statusCode !== 200 && $payload['try'] === Producer::FIRST_TRY) {
+            if ($statusCode !== self::STATUS_SUCCESS && $payload['try'] === Producer::FIRST_TRY) {
                 $this->producerDelayed->setPayloadUrl($payload['url']);
                 $this->producerDelayed->send();
             } else {

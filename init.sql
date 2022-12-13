@@ -22,6 +22,7 @@ CREATE TABLE if not exists response_headers
     created_at timestamp default current_timestamp,
     updated_at timestamp,
     PRIMARY KEY(id),
+    CONSTRAINT request_id_header UNIQUE (request_id, header_key),
     CONSTRAINT fk_request_id FOREIGN KEY (request_id) REFERENCES request (id) ON DELETE CASCADE
 );
 

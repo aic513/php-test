@@ -18,6 +18,7 @@ class ProducerDelayed
     private AmqpConnectionFactory $connectionFactory;
     private array $payload = [];
     const SECOND_TRY = 2;
+    const DELAY_TIME = 15000;
 
     public function __construct(AmqpConnectionFactory $connectionFactory)
     {
@@ -42,13 +43,13 @@ class ProducerDelayed
 
         $this->context->bind(new AmqpBind($topic, $queue));
 
-        $this->setPayloadTry(self::SECOND_TRY);
+        $this->setPayloadTry();
 
         $message = $this->context->createMessage(
             json_encode($this->getPayload(), JSON_UNESCAPED_SLASHES + JSON_UNESCAPED_UNICODE)
         );
         $this->context->createProducer()
-            ->setDeliveryDelay(15000)
+            ->setDeliveryDelay(self::DELAY_TIME)
             ->send($queue, $message);
         echo '[x] [ProducerDelayed] Job created again - ' . $this->getPayload()['url'] . ' try - ' . $this->getPayload()['try'] . PHP_EOL;
     }
@@ -69,8 +70,8 @@ class ProducerDelayed
         $this->payload['url'] = $url;
     }
 
-    private function setPayloadTry(int $try)
+    private function setPayloadTry(): void
     {
-        $this->payload['try'] = $try;
+        $this->payload['try'] = self::SECOND_TRY;
     }
 }
